@@ -29,11 +29,13 @@ dist
 coverage
 
 # ───────────────────────────────────────────────
-# Frontend source — not needed in backend image
-# (backend Dockerfile uses explicit COPY commands)
+# Large generated build artefact — not needed in any image
 # ───────────────────────────────────────────────
-src
-public
+# NOTE: src/ and public/ are intentionally NOT excluded here.
+#   • Dockerfile.frontend needs them for "vite build" (COPY src/ and COPY public/).
+#   • Dockerfile (backend) uses only explicit COPY server.cjs / routes/ / middleware/ /
+#     services/ — so src/ and public/ are in the build context but never copied in.
+# ───────────────────────────────────────────────
 stats.html
 
 # ───────────────────────────────────────────────
