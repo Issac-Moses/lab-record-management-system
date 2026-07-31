@@ -84,10 +84,10 @@ services:
     container_name: lab-frontend
     restart: unless-stopped
 
-    # Port 80 is published — Coolify's Traefik picks this up and attaches
-    # the labmanagementportal.xyz domain + Let's Encrypt HTTPS certificate.
-    ports:
-      - "80:80"
+    # Coolify's Traefik reverse proxy handles port 80/443 on the host.
+    # We only expose the internal port 80 so Traefik can route to it.
+    expose:
+      - "80"
 
     # Frontend depends on backend being up.
     depends_on:
