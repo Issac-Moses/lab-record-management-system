@@ -1,3 +1,20 @@
+process.on('uncaughtException', (err) => {
+  console.error('=================================================================');
+  console.error('FATAL UNCAUGHT EXCEPTION DURING STARTUP:');
+  console.error(err);
+  console.error(err.stack);
+  console.error('=================================================================');
+  process.exit(1);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('=================================================================');
+  console.error('FATAL UNHANDLED REJECTION DURING STARTUP:');
+  console.error(err);
+  if (err && err.stack) console.error(err.stack);
+  console.error('=================================================================');
+  process.exit(1);
+});
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
