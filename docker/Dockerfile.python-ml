@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+
+# Install Machine Learning & Data Science packages for Lab Experiments
+RUN pip install --no-cache-dir \
+    numpy \
+    pandas \
+    matplotlib \
+    scikit-learn \
+    tensorflow

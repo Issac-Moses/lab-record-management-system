@@ -1,0 +1,110 @@
+services:
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # BACKEND — Express API + Code Runner
+  # ───────────────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lab-backend
+    restart: unless-stopped
+
+    # Port is NOT published to host — only accessible within Docker network.
+    # Nginx (frontend container) proxies /api/* and /run to this service
+    # using the internal hostname "backend:7001".
+    expose:
+      - "7001"
+
+    volumes:
+      # Docker socket — needed for the /run endpoint to spawn sandboxed
+      # language containers (Python, Java, C++, etc.).
+      # If your Coolify VPS does not expose the host Docker socket,
+      # set CODE_RUNNER=piston in Coolify env vars to use the cloud fallback.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persist job output files between container restarts.
+      - jobs_data:/app/jobs
+
+    environment:
+      # ── Runtime ──────────────────────────────────────────────────────────
+      - NODE_ENV=production
+      - RUNNER_PORT=7001
+      # trust proxy=1 makes Express rate-limiter see the real client IP
+      # (not Nginx/Traefik IP) via X-Forwarded-For header.
+      - TRUST_PROXY=1
+
+      # ── Code Execution Strategy ──────────────────────────────────────────
+      # auto   = try host Docker first; fall back to Piston/Judge0 if missing
+      # piston = always use Piston cloud API (no Docker socket needed)
+      # docker = always use host Docker (fails if socket unavailable)
+      - CODE_RUNNER=${CODE_RUNNER:-piston}
+
+      # ── CORS ─────────────────────────────────────────────────────────────
+      # Allow requests from the production domain.
+      # Since Nginx proxies /api from the same origin, CORS rarely fires,
+      # but this covers direct API calls and future subdomains.
+      - CORS_ORIGINS=https://labmanagementportal.xyz
+
+      # ── Supabase ─────────────────────────────────────────────────────────
+      # Set these in Coolify → Environment Variables UI (NOT in .env file).
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+
+      # ── AI / Gemini ───────────────────────────────────────────────────────
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+
+      # ── Tuneable limits (optional — defaults are shown) ──────────────────
+      - JSON_BODY_LIMIT=${JSON_BODY_LIMIT:-10mb}
+      - RATE_LIMIT_GLOBAL_MAX=${RATE_LIMIT_GLOBAL_MAX:-5000}
+      - RATE_LIMIT_RUN_MAX=${RATE_LIMIT_RUN_MAX:-60}
+
+    # ── Health Check ─────────────────────────────────────────────────────────
+    # GET / returns {"status":"Runner OK"} when Express is listening.
+    # start_period=30s: Docker won't count failures during the first 30s.
+    # This prevents false "unhealthy" state while npm loads 8 packages.
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:7001/"]
+      interval: 30s
+      timeout: 10s
+      retries:  5
+      start_period: 30s
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # FRONTEND — React + Vite build → Nginx static server
+  # ───────────────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # ── Build-time Vite environment variables ───────────────────────────
+        # These are BAKED into the JS bundle during "vite build".
+        # Set them in Coolify → Environment Variables UI.
+        #
+        # VITE_MANUAL_API_URL: base URL the React app uses for all API calls.
+        # Since Nginx proxies /api/* and /run to the backend on the same domain,
+        # this should be https://labmanagementportal.xyz (no trailing slash).
+        VITE_SUPABASE_URL:                  ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY:             ${VITE_SUPABASE_ANON_KEY}
+        VITE_MANUAL_API_URL:                ${VITE_MANUAL_API_URL:-https://labmanagementportal.xyz}
+        VITE_PROCTOR_API_URL:               ${VITE_PROCTOR_API_URL:-}
+        VITE_INTERNAL_EXPERIMENT_MAX_MARK:  ${VITE_INTERNAL_EXPERIMENT_MAX_MARK:-10}
+        VITE_INTERNAL_MARKS_MAX:            ${VITE_INTERNAL_MARKS_MAX:-20}
+    container_name: lab-frontend
+    restart: unless-stopped
+
+    # Port 80 is published — Coolify's Traefik picks this up and attaches
+    # the labmanagementportal.xyz domain + Let's Encrypt HTTPS certificate.
+    ports:
+      - "80:80"
+
+    # Frontend waits until backend is confirmed healthy before starting.
+    # With start_period=30s above this will succeed as long as backend loads.
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  jobs_data:
+    name: lab_record_jobs_data

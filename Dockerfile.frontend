@@ -1,0 +1,75 @@
+# =============================================================================
+# Lab Record System — Frontend (React + Vite → Nginx)
+# Production Multi-Stage Dockerfile
+#
+# Stage 1 (builder): node:20-alpine
+#   • Installs ALL deps (devDeps needed for vite/typescript/tailwind build)
+#   • Accepts VITE_* build args → bakes them into the JS bundle at build time
+#   • Runs "vite build" → outputs static files to /app/dist
+#
+# Stage 2 (runtime): nginx:alpine
+#   • Copies ONLY /app/dist from builder (no node_modules, no source code)
+#   • Serves static files + proxies /api/* and /run to backend container
+#   • Final image is ~25 MB instead of ~500 MB dev server image
+# =============================================================================
+
+# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# ─── Build-time environment variables for Vite ────────────────────────────────
+# These are passed from docker-compose.yml args (which get them from Coolify env)
+# They are BAKED into the JS bundle — not available at runtime.
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_MANUAL_API_URL
+ARG VITE_PROCTOR_API_URL
+ARG VITE_INTERNAL_EXPERIMENT_MAX_MARK=10
+ARG VITE_INTERNAL_MARKS_MAX=20
+ARG VITE_DOCKER_URL
+
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_MANUAL_API_URL=$VITE_MANUAL_API_URL
+ENV VITE_PROCTOR_API_URL=$VITE_PROCTOR_API_URL
+ENV VITE_INTERNAL_EXPERIMENT_MAX_MARK=$VITE_INTERNAL_EXPERIMENT_MAX_MARK
+ENV VITE_INTERNAL_MARKS_MAX=$VITE_INTERNAL_MARKS_MAX
+ENV VITE_DOCKER_URL=$VITE_DOCKER_URL
+
+# ─── Install dependencies ─────────────────────────────────────────────────────
+# Uses the full package.json + package-lock.json (includes vite, typescript,
+# tailwind, all devDeps needed to compile the frontend bundle).
+COPY package.json package-lock.json ./
+RUN npm ci --loglevel=warn
+
+# ─── Copy frontend source files ───────────────────────────────────────────────
+# Only copy what vite needs. Do NOT copy server.cjs / routes / middleware.
+COPY index.html              ./
+COPY vite.config.ts          ./
+COPY tsconfig.json           ./
+COPY tsconfig.app.json       ./
+COPY tailwind.config.js      ./
+COPY postcss.config.cjs      ./
+COPY components.json         ./
+COPY src/                    ./src/
+COPY public/                 ./public/
+
+# ─── Build production bundle ──────────────────────────────────────────────────
+RUN npm run build
+
+# ─── Stage 2: Serve ───────────────────────────────────────────────────────────
+FROM nginx:alpine
+
+# Remove default Nginx site config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy our production Nginx config (SPA fallback + API reverse proxy)
+COPY nginx.conf /etc/nginx/conf.d/app.conf
+
+# Copy compiled static assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

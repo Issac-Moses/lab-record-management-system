@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --radius: 0.75rem;
+    --primary: #00ff88;
+    --primary-dark: #00c853;
+    /* Student portal (aligned with tailwind `student.*` tokens) */
+    --student-accent: 217 91% 60%;
+    --student-accent-dark: 221 83% 53%;
+    --student-surface: 222 47% 11%;
+    --student-card: 217 33% 17%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --primary: #00ff88;
+    --primary-dark: #00c853;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  html {
+    background-color: #0b0f14;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-bg text-gray-200;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  th {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+@media (max-width: 767px) {
+  button {
+    min-height: 44px;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+/* Global button styles */
+.btn-green {
+  @apply px-4 py-2 rounded-xl bg-gradient-to-r from-accent-green to-accent-green-dark text-black font-medium 
+         hover:scale-105 transition-all duration-200 shadow-lg;
+}
+
+/* Student portal primary button */
+.btn-student {
+  @apply px-4 py-2 rounded-xl bg-gradient-to-r from-student-accent to-student-accent-dark text-white font-medium 
+         transition-all duration-200 shadow-lg shadow-student-accent/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-student-accent/40 active:scale-[0.96];
+}
+
+/* Card glow effect */
+.card-glow {
+  @apply bg-dark-card border border-dark-border rounded-xl p-5 
+         hover:border-accent-green/40 hover:shadow-[0_0_20px_rgba(0,255,136,0.1)] 
+         transition-all duration-300;
+}
+
+@layer utilities {
+  .faculty-bg-cool {
+    background: linear-gradient(140deg, #edf4ff 0%, #e9eeff 50%, #eef2ff 100%);
+  }
+
+  .faculty-bg-vibrant {
+    background: linear-gradient(140deg, #dbeafe 0%, #ede9fe 52%, #f5e8ff 100%);
+  }
+
+  .faculty-bg-minimal {
+    background: linear-gradient(140deg, #f8fbff 0%, #f5f3ff 50%, #eef2ff 100%);
+  }
+
+  .faculty-surface {
+    @apply rounded-2xl border border-slate-200/80 bg-white/85 shadow-[0_12px_28px_rgba(15,23,42,0.08)] backdrop-blur-md transition-all duration-200;
+  }
+
+  .faculty-surface:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
+  }
+
+  /* Chart analytics cards — matches Home/Login card language exactly */
+  .chart-card {
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 4px 12px rgba(37, 99, 235, 0.07),
+      0 12px 28px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 24px;
+    transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+  }
+
+  .chart-card:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 20px rgba(37, 99, 235, 0.12),
+      0 18px 36px rgba(15, 23, 42, 0.10);
+  }
+
+  .chart-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .chart-card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .chart-card-sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  .faculty-glass {
+    background: linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.12) 0%,
+      rgba(79, 70, 229, 0.1) 45%,
+      rgba(255, 255, 255, 0.9) 100%
+    );
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 16px 36px rgba(37, 99, 235, 0.15);
+    backdrop-filter: blur(12px);
+  }
+
+  .faculty-gradient-ring {
+    box-shadow:
+      0 0 0 1px rgba(226, 232, 240, 0.9),
+      0 10px 28px rgba(15, 23, 42, 0.1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  }
+
+  .faculty-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .faculty-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.45) 45%,
+      transparent 100%
+    );
+    animation: facultyShimmer 1.35s ease-in-out infinite;
+  }
+
+  .student-page-enter {
+    animation: studentPageEnter 200ms ease-out both;
+  }
+
+  .student-card-interactive {
+    transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out, background-color 180ms ease-out;
+    will-change: transform;
+  }
+
+  .student-card-interactive:hover {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12), 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .student-card-interactive:active {
+    transform: scale(0.98);
+  }
+
+  .student-status-badge {
+    animation: studentBadgeIn 150ms ease-out both;
+    transform-origin: center;
+  }
+
+  .student-row {
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+    border-left: 2px solid transparent;
+  }
+
+  .student-row:hover {
+    background-color: rgb(239 246 255 / 0.6);
+  }
+
+  .student-row-active {
+    border-left-color: rgb(99 102 241 / 0.7);
+    background-color: rgb(238 242 255 / 0.45);
+  }
+
+  .student-btn-primary {
+    transition: transform 180ms ease-out, box-shadow 180ms ease-out, filter 180ms ease-out;
+    will-change: transform;
+  }
+
+  .student-btn-primary:hover {
+    transform: translate3d(0, -1px, 0);
+    box-shadow: 0 14px 26px rgba(79, 70, 229, 0.3);
+    filter: saturate(1.08);
+  }
+
+  .student-btn-primary:active {
+    transform: scale(0.96);
+  }
+
+  .student-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .student-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.22) 45%, transparent 100%);
+    animation: studentShimmer 1.25s ease-in-out infinite;
+  }
+
+  .student-scroll-reveal {
+    animation: studentPageEnter 200ms ease-out both;
+  }
+}
+
+@keyframes facultyShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes studentPageEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes studentBadgeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes studentShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

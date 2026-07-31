@@ -1,0 +1,15 @@
+-- Optional: permanently remove the legacy NNDL "Experiment 1" (vector addition) row from `experiments`
+-- after verifying subject_id and title. Run in Supabase SQL editor.
+--
+-- 1) List candidates:
+-- select id, subject_id, experiment_no, title from experiments e
+-- join subjects s on s.id = e.subject_id
+-- where (s.name ilike '%NNDL%' or s.name ilike '%neural%network%' or s.name ilike '%deep%learning%')
+--   and e.experiment_no = 1
+--   and (e.title ilike '%vector%' and (e.title ilike '%addition%' or e.title ilike '%tens%'));
+--
+-- 2) Delete (replace :subject_id with your UUID):
+-- delete from experiments
+-- where subject_id = ':subject_id'
+--   and experiment_no = 1
+--   and title ilike '%vector%addition%';

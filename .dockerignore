@@ -1,0 +1,80 @@
+# ───────────────────────────────────────────────
+# Node / npm
+# ───────────────────────────────────────────────
+node_modules
+dist
+.npm
+
+# ───────────────────────────────────────────────
+# Git & GitHub
+# ───────────────────────────────────────────────
+.git
+.github
+.gitignore
+
+# ───────────────────────────────────────────────
+# Environment — NEVER bake secrets into images
+# ───────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ───────────────────────────────────────────────
+# IDE / editor noise
+# ───────────────────────────────────────────────
+.vscode
+.cursor
+.cursor-tutor
+*.log
+coverage
+
+# ───────────────────────────────────────────────
+# Frontend source — not needed in backend image
+# (backend Dockerfile uses explicit COPY commands)
+# ───────────────────────────────────────────────
+src
+public
+stats.html
+
+# ───────────────────────────────────────────────
+# Test / QA artefacts
+# ───────────────────────────────────────────────
+tests
+playwright.config.ts
+vitest.config.ts
+playwright-report
+test-results
+
+# ───────────────────────────────────────────────
+# Documentation & markdown
+# ───────────────────────────────────────────────
+docs
+*.md
+!README.md
+
+# ───────────────────────────────────────────────
+# SQL migrations & CSV data files
+# ───────────────────────────────────────────────
+*.sql
+*.csv
+
+# ───────────────────────────────────────────────
+# Shell scripts (not needed inside container)
+# ───────────────────────────────────────────────
+*.sh
+
+# ───────────────────────────────────────────────
+# Runtime job directories (use Docker volume instead)
+# ───────────────────────────────────────────────
+jobs
+tmp
+.tmp-*
+
+# ───────────────────────────────────────────────
+# Python / proctor service
+# ───────────────────────────────────────────────
+backend/proctor
+__pycache__
+*.pyc
+.venv
+venv

@@ -1,0 +1,37 @@
+node_modules
+dist
+.DS_Store
+.vercel
+
+# Secrets & env — never commit real keys (commit .env.example only)
+.env
+.env.*
+!.env.example
+!.env.sample
+.env*.local
+
+# Keys / credentials (common patterns)
+*.pem
+*.p12
+*.key
+credentials.json
+secrets.json
+
+# Local / IDE noise (do not commit)
+.cursor/debug*.log
+.tmp-*.js
+*.log
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Python virtual environments
+.venv/
+venv/
+backend/proctor/.venv/
+
+# Python cache
+__pycache__/
+*.pyc
