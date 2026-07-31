@@ -49,5 +49,5 @@ ENV RUNNER_PORT=7001
 EXPOSE 7001
 
 
-# ─── Start the Express API server ─────────────────────────────────────────────
-CMD ["node", "server.cjs"]
+# ─── Start the Express API server (with debug catch) ──────────────────────
+CMD sh -c "node server.cjs > crash.log 2>&1 || (cat crash.log && echo 'CRASHED - SLEEPING' && sleep 3600)"
