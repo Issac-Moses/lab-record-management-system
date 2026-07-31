@@ -19,13 +19,19 @@ WORKDIR /app
 # docker-cli : used by /run endpoint to spawn sandboxed code containers
 RUN apk add --no-cache curl docker-cli
 
-# ─── Install backend-only Node dependencies ───────────────────────────────────
-# We use package.backend.json (NOT the root package.json which contains 60+
-# frontend-only packages like React, Monaco Editor, framer-motion, pdfjs-dist).
-# npm install (without --ci) generates its own lockfile from scratch for this
-# slim manifest — correct, reproducible, and fast on subsequent cached builds.
-COPY package.backend.json ./package.json
-RUN npm install --production --no-audit --no-fund --loglevel=warn
+# ─── Install production Node dependencies ─────────────────────────────────────
+# Use the full package.json + package-lock.json with npm ci --omit=dev.
+# Why not package.backend.json?
+#   npm install (without lockfile) can resolve different package versions than
+#   what was tested locally, causing hard-to-diagnose runtime crashes.
+# Why --omit=dev?
+#   Skips vite, typescript, playwright (no browsers downloaded, smaller image).
+# Why not --ignore-scripts?
+#   Some packages need their postinstall scripts; omitting breaks them silently.
+# All production dependencies in this project are pure JS — no native bindings
+# that would fail on Alpine.
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --loglevel=warn
 
 # ─── Copy backend source files only ───────────────────────────────────────────
 # DO NOT use "COPY . ." — that would copy frontend source, SQL files,
