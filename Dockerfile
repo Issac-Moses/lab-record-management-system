@@ -48,18 +48,6 @@ ENV RUNNER_PORT=7001
 # ─── Expose API port ──────────────────────────────────────────────────────────
 EXPOSE 7001
 
-# ─── Health check ─────────────────────────────────────────────────────────────
-# interval    : check every 30s (not 10s — reduces noise during startup)
-# timeout     : wait 10s for response before marking as failed
-# retries     : 5 failures → unhealthy
-# start-period: give the server 30s to finish loading all routes before
-#               health checks start counting failures.
-HEALTHCHECK \
-  --interval=30s \
-  --timeout=10s  \
-  --start-period=30s \
-  --retries=5 \
-  CMD curl -sf http://localhost:7001/ || exit 1
 
 # ─── Start the Express API server ─────────────────────────────────────────────
 CMD ["node", "server.cjs"]
