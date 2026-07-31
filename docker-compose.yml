@@ -59,17 +59,7 @@ services:
       - RATE_LIMIT_GLOBAL_MAX=${RATE_LIMIT_GLOBAL_MAX:-5000}
       - RATE_LIMIT_RUN_MAX=${RATE_LIMIT_RUN_MAX:-60}
 
-    # ── Health Check ─────────────────────────────────────────────────────────
-    # GET / returns {"status":"Runner OK"} when Express is listening.
-    # start_period=30s: Docker won't count failures during the first 30s.
-    # This prevents false "unhealthy" state while npm loads 8 packages.
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:7001/"]
-      interval: 30s
-      timeout: 10s
-      retries:  5
-      start_period: 30s
-
+    
   # ───────────────────────────────────────────────────────────────────────────
   # FRONTEND — React + Vite build → Nginx static server
   # ───────────────────────────────────────────────────────────────────────────
@@ -99,11 +89,9 @@ services:
     ports:
       - "80:80"
 
-    # Frontend waits until backend is confirmed healthy before starting.
-    # With start_period=30s above this will succeed as long as backend loads.
+    # Frontend depends on backend being up.
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
 
 volumes:
   jobs_data:
