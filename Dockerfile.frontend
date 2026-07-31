@@ -2,9 +2,12 @@
 # Lab Record System — Frontend (React + Vite → Nginx)
 # Production Multi-Stage Dockerfile
 #
-# Stage 1 (builder): node:20-alpine
+# Stage 1 (builder): node:22-alpine
+#   • Node 22 required by rollup-plugin-visualizer@7 (engines: node>=22)
 #   • Installs ALL deps (devDeps needed for vite/typescript/tailwind build)
 #   • Accepts VITE_* build args → bakes them into the JS bundle at build time
+#   • NODE_OPTIONS=--max-old-space-size=2048 prevents OOM kill during
+#     vite transform phase (Monaco Editor + framer-motion are very large)
 #   • Runs "vite build" → outputs static files to /app/dist
 #
 # Stage 2 (runtime): nginx:alpine
@@ -14,7 +17,7 @@
 # =============================================================================
 
 # ─── Stage 1: Build ───────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -37,11 +40,19 @@ ENV VITE_INTERNAL_EXPERIMENT_MAX_MARK=$VITE_INTERNAL_EXPERIMENT_MAX_MARK
 ENV VITE_INTERNAL_MARKS_MAX=$VITE_INTERNAL_MARKS_MAX
 ENV VITE_DOCKER_URL=$VITE_DOCKER_URL
 
+# ─── Node.js heap limit ───────────────────────────────────────────────────────
+# Monaco Editor + framer-motion + pdfjs-dist together require ~1.5 GB during
+# vite transform. Without this flag, Node hits its default ~512 MB heap limit
+# and the OS OOM-killer terminates the container (exit code 255 in docker exec).
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 # ─── Install dependencies ─────────────────────────────────────────────────────
 # Uses the full package.json + package-lock.json (includes vite, typescript,
 # tailwind, all devDeps needed to compile the frontend bundle).
 COPY package.json package-lock.json ./
-RUN npm ci --loglevel=warn
+# --ignore-engines: silences the rollup-plugin-visualizer@7 EBADENGINE warning
+# (it requires node>=22, which we now satisfy with node:22-alpine above).
+RUN npm ci --loglevel=warn --ignore-engines
 
 # ─── Copy frontend source files ───────────────────────────────────────────────
 # Only copy what vite needs. Do NOT copy server.cjs / routes / middleware.
@@ -56,6 +67,8 @@ COPY src/                    ./src/
 COPY public/                 ./public/
 
 # ─── Build production bundle ──────────────────────────────────────────────────
+# NODE_OPTIONS is already set above. Using npm run build (calls vite build).
+# If vite build still OOMs at 2048 MB, raise to 3072 and redeploy.
 RUN npm run build
 
 # ─── Stage 2: Serve ───────────────────────────────────────────────────────────
