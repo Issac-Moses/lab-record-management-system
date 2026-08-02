@@ -929,7 +929,8 @@ export default function StudentExperiment() {
             : [];
         const normalizedAttachments = savedAttachments
           .map((value) => String(value || "").trim())
-          .filter(Boolean);
+          .filter((value) => Boolean(value) && !value.startsWith("data:application/json"))
+          .slice(0, MAX_ATTACHMENTS);
         setAttachmentDataUrls(normalizedAttachments);
         setCurrentStatus(String((submissionData as any).status || "draft"));
 
@@ -1107,7 +1108,7 @@ export default function StudentExperiment() {
   /* ================= SECURITY ================= */
   /* ================= SECURITY ================= */
   /* ================= IMAGE & ATTACHMENT ================= */
-  const MAX_ATTACHMENTS = 23;
+  const MAX_ATTACHMENTS = 5;
 
   const removeAttachment = useCallback((index: number) => {
     setAttachmentDataUrls((prev) => prev.filter((_, i) => i !== index));
@@ -1125,7 +1126,13 @@ export default function StudentExperiment() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement> | { target: { files: FileList | File[] } }) => {
     const files = e.target.files;
     if (!files) return;
-    const arr = Array.from(files).slice(0, MAX_ATTACHMENTS);
+    const currentCount = attachmentDataUrls.length;
+    const remainingSlots = Math.max(0, MAX_ATTACHMENTS - currentCount);
+    if (remainingSlots === 0) {
+      setUploadHint(`Maximum ${MAX_ATTACHMENTS} attachments allowed.`);
+      return;
+    }
+    const arr = Array.from(files).slice(0, remainingSlots);
     const imageFiles = arr.filter((file) => String(file.type || "").startsWith("image/"));
     const pdfFiles = arr.filter((file) => {
       const type = String(file.type || "").toLowerCase();
@@ -1336,19 +1343,7 @@ export default function StudentExperiment() {
           Object.prototype.hasOwnProperty.call(payloadToSave, "execution_log") &&
           (isMissingColumnError(upsertError, "execution_log") || mentionsFieldError(upsertError, "execution_log"))
         ) {
-          console.warn("[Submission] DB missing 'execution_log' column. Embedding snapshot into attachments payload.");
-          if (executionPayload) {
-            try {
-              const embeddedSnapshot = `data:application/json;base64,${btoa(JSON.stringify(executionPayload))}`;
-              if (Array.isArray(payloadToSave.attachments)) {
-                payloadToSave.attachments = [...(payloadToSave.attachments as string[]), embeddedSnapshot];
-              } else {
-                payloadToSave.attachments = [embeddedSnapshot];
-              }
-            } catch (_err) {
-              // ignore encoding error
-            }
-          }
+          console.warn("[Submission] DB missing 'execution_log' column. Omitting from submission payload.");
           delete payloadToSave.execution_log;
           continue;
         }
@@ -1440,10 +1435,6 @@ export default function StudentExperiment() {
       }
       setSubmittedCard(true);
       toast.success("Experiment submitted successfully.");
-      const targetSubject = subjectId
-        ? `?subject=${subjectId}&refresh=${Date.now()}`
-        : `?refresh=${Date.now()}`;
-      window.setTimeout(() => navigate(`/student/submissions${targetSubject}`), 900);
     }
   }
 
@@ -2062,7 +2053,7 @@ export default function StudentExperiment() {
                       {key === "output" && (
                         <div className="space-y-4">
                           <Textarea value={output} onChange={(e) => setOutput(e.target.value)} placeholder="Paste or describe your output..." rows={4} disabled={isReadOnly} />
-                          {showPhotoUpload && renderAttachmentUpload()}
+                          {showPhotoUpload && (!isReadOnly || attachmentPreviewSources.length > 0) && renderAttachmentUpload()}
                         </div>
                       )}
                       {key === "result" && (

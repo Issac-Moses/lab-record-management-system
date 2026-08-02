@@ -533,16 +533,28 @@ export default function StudentSubmissions() {
                       Continue Draft
                     </button>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`/student/experiments/${sub.experimentId || sub.id}/submit?subject=${subjectFilterId}&readonly=1`)
-                      }
-                      className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-xs hover:bg-slate-50 transition-all"
-                    >
-                      <Eye className="h-3.5 w-3.5 text-slate-600" />
-                      View Submission
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(`/student/experiments/${sub.experimentId || sub.id}/submit?subject=${subjectFilterId}`)
+                        }
+                        className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs hover:bg-blue-100 transition-all"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-blue-600" />
+                        Edit / Re-do
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(`/student/experiments/${sub.experimentId || sub.id}/submit?subject=${subjectFilterId}&readonly=1`)
+                        }
+                        className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-all"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-slate-600" />
+                        View Submission
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

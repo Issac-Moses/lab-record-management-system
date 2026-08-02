@@ -101,7 +101,7 @@ function dockerMissingError(stderr, err) {
 /**
  * Run code via public Piston API (no Docker on server). Rate limits may apply.
  */
-async function runWithPiston(language, code) {
+async function runWithPiston(language, code, input = "") {
   const lang = String(language || "").toLowerCase();
   if (lang === "sql") {
     throw new Error("SQL runner needs Docker; run locally or use a VPS with Docker.");
@@ -120,6 +120,7 @@ async function runWithPiston(language, code) {
       language: cfg.language,
       version: cfg.version,
       files: [{ name: cfg.file, content: String(code || "") }],
+      stdin: String(input || ""),
     }),
   });
   const text = await res.text();
@@ -171,7 +172,7 @@ async function runWithJudge0(language, code, input = "") {
   if (typeof fetch !== "function") {
     throw new Error("Node 18+ required for Judge0 runner (global fetch).");
   }
-  const stdinVal = input != null && String(input).length > 0 ? String(input) : "0\n";
+  const stdinVal = input != null ? String(input) : "";
   const url = `${JUDGE0_API_URL}/submissions?base64_encoded=false&wait=true`;
   const res = await fetch(url, {
     method: "POST",
@@ -535,7 +536,7 @@ app.post("/run", runLimiter, async (req, res) => {
   /** Judge0 CE only (free public API, no Docker). */
   if (CODE_RUNNER === "judge0") {
     try {
-      const r = await runWithJudge0(language, code);
+      const r = await runWithJudge0(language, code, input);
       return res.json({
         success: r.ok,
         output: r.stdout || "",
@@ -553,7 +554,7 @@ app.post("/run", runLimiter, async (req, res) => {
   /** Piston (+ Judge0 on Piston throw) — for hosts without Docker (e.g. Render Node). */
   if (CODE_RUNNER === "piston") {
     try {
-      const r = await runWithCloudChain(language, code);
+      const r = await runWithCloudChain(language, code, input);
       return res.json({
         success: r.ok,
         output: r.stdout || "",
@@ -831,7 +832,7 @@ ${cmd}
       if (tryPiston) {
         console.warn("[run] Docker unavailable, using Piston → Judge0 fallback for language=", language);
         try {
-          const r = await runWithCloudChain(language, code);
+          const r = await runWithCloudChain(language, code, input);
           return res.json({
             success: r.ok,
             output: r.stdout || "",
