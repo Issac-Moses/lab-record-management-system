@@ -20,7 +20,7 @@ const cors = require("cors");
 const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const manualRoutes = require("./routes/manualRoutes.cjs");
+// const manualRoutes = require("./routes/manualRoutes.cjs");
 const gamificationRoutes = require("./routes/gamificationRoutes.cjs");
 const adminRoutes = require("./routes/adminRoutes.cjs");
 const aiRoutes = require("./routes/aiRoutes.cjs");
@@ -346,7 +346,7 @@ const aiEvaluateLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-app.use("/api/manual", manualRoutes);
+// app.use("/api/manual", manualRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ai", aiRoutes);
