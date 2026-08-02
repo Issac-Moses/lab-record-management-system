@@ -10,14 +10,14 @@
 #  • start-period=30s gives the server ample time to load all routes
 # =============================================================================
 
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
 # ─── System dependencies ──────────────────────────────────────────────────────
-# curl  : used by HEALTHCHECK below
-# docker-cli : used by /run endpoint to spawn sandboxed code containers
-RUN apk add --no-cache curl docker-cli
+# curl  : used for general debugging
+# docker.io : used by /run endpoint to spawn sandboxed code containers
+RUN apt-get update && apt-get install -y curl docker.io && rm -rf /var/lib/apt/lists/*
 
 # ─── Install production Node dependencies ─────────────────────────────────────
 # Use the full package.json + package-lock.json with npm ci --omit=dev.
