@@ -7,7 +7,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lab-backend
     restart: unless-stopped
 
     # Port is NOT published to host — only accessible within Docker network.
@@ -81,7 +80,6 @@ services:
         VITE_PROCTOR_API_URL:               ${VITE_PROCTOR_API_URL:-}
         VITE_INTERNAL_EXPERIMENT_MAX_MARK:  ${VITE_INTERNAL_EXPERIMENT_MAX_MARK:-10}
         VITE_INTERNAL_MARKS_MAX:            ${VITE_INTERNAL_MARKS_MAX:-20}
-    container_name: lab-frontend
     restart: unless-stopped
 
     # Coolify's Traefik reverse proxy handles port 80/443 on the host.
