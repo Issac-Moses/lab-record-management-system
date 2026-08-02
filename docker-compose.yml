@@ -89,10 +89,7 @@ services:
     expose:
       - "80"
 
-    # Frontend depends on backend being up.
-    depends_on:
-      - backend
-
+    
 volumes:
   jobs_data:
     name: lab_record_jobs_data
