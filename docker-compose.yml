@@ -82,10 +82,11 @@ services:
         VITE_INTERNAL_MARKS_MAX:            ${VITE_INTERNAL_MARKS_MAX:-20}
     restart: unless-stopped
 
-    # Coolify's Traefik reverse proxy handles port 80/443 on the host.
-    # We only expose the internal port 80 so Traefik can route to it.
-    expose:
-      - "80"
+    # Publish port 8080 directly to the host so Cloudflare Tunnel can reach it.
+    # We bypass Coolify's Traefik (which wasn't routing correctly) and let
+    # Cloudflare handle domain routing directly.
+    ports:
+      - "8080:80"
 
     
 volumes:
